@@ -16,4 +16,5 @@ urlpatterns = [
     path('movie/<int:movie_id>/toggle-status/', views.toggle_movie_status, name='toggle_movie_status'),
     path('movie/<int:movie_id>/toggle-favorite/', views.toggle_movie_favorite, name='toggle_movie_favorite'),
     path('movie/<int:movie_id>/delete/', views.delete_movie, name='delete_movie'),
+    path('movies/export/', views.export_movies, name='export_movies'),
 ]

@@ -11,6 +11,13 @@ class SignUpForm(UserCreationForm):
 
 
 class MovieForm(forms.ModelForm):
+    runtime_minutes = forms.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=999,
+        widget=forms.NumberInput(attrs={'min': '1', 'max': '999', 'placeholder': 'e.g. 148'}),
+    )
+
     class Meta:
         model = Movie
         fields = [
@@ -19,6 +26,8 @@ class MovieForm(forms.ModelForm):
             'director',
             'release_year',
             'release_date',
+            'watched_on',
+            'runtime_minutes',
             'rating',
             'description',
             'status',
@@ -29,6 +38,7 @@ class MovieForm(forms.ModelForm):
             'director': forms.TextInput(attrs={'placeholder': 'e.g. Christopher Nolan'}),
             'release_year': forms.NumberInput(attrs={'min': 1900, 'max': 2100}),
             'release_date': forms.DateInput(attrs={'type': 'date'}),
+            'watched_on': forms.DateInput(attrs={'type': 'date'}),
             'rating': forms.NumberInput(attrs={'step': '0.1', 'min': '0', 'max': '10'}),
             'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Write a short overview of the movie...'}),
             'status': forms.Select(),

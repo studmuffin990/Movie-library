@@ -16,6 +16,8 @@ class Movie(models.Model):
     director = models.CharField(max_length=255)
     release_year = models.PositiveIntegerField()
     release_date = models.DateField(null=True, blank=True)
+    watched_on = models.DateField(null=True, blank=True)
+    runtime_minutes = models.PositiveSmallIntegerField(null=True, blank=True)
     rating = models.FloatField(default=0.0)
     description = models.TextField(blank=True)
     is_favorite = models.BooleanField(default=False)

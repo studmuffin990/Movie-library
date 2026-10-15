@@ -26,6 +26,8 @@ class AddMovieTests(TestCase):
                 'director': 'Denis Villeneuve',
                 'release_year': 2016,
                 'release_date': '2016-11-11',
+                'watched_on': '2024-05-12',
+                'runtime_minutes': 116,
                 'rating': 8.0,
                 'description': 'A linguist works to communicate with visitors.',
                 'status': Movie.STATUS_WATCHED,
@@ -36,6 +38,9 @@ class AddMovieTests(TestCase):
         self.assertTrue(
             Movie.objects.filter(movie_title='Arrival', owner=self.user).exists()
         )
+        movie = Movie.objects.get(movie_title='Arrival', owner=self.user)
+        self.assertEqual(movie.watched_on.isoformat(), '2024-05-12')
+        self.assertEqual(movie.runtime_minutes, 116)
 
 
 class CollectionFeatureTests(TestCase):
@@ -98,6 +103,44 @@ class CollectionFeatureTests(TestCase):
         response = self.client.get(reverse('index'), {'favorites': '1'})
         self.assertEqual(list(response.context['movies']), [self.arrival])
 
+    def test_genre_breakdown_counts_each_genre(self):
+        response = self.client.get(reverse('index'))
+
+        self.assertEqual(
+            response.context['genre_breakdown'],
+            [
+                {'name': 'Sci-Fi', 'count': 2, 'percentage': 67},
+                {'name': 'Comedy', 'count': 1, 'percentage': 33},
+            ],
+        )
+
+    def test_csv_export_contains_only_the_signed_in_users_movies(self):
+        other_user = User.objects.create_user(username='other', password='StrongPass!1234')
+        Movie.objects.create(
+            owner=other_user,
+            movie_title='Private movie',
+            genre='Drama',
+            director='Someone',
+            release_year=2022,
+        )
+
+        response = self.client.get(reverse('export_movies'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'text/csv; charset=utf-8')
+        self.assertIn('Arrival', response.content.decode('utf-8-sig'))
+        self.assertNotIn('Private movie', response.content.decode('utf-8-sig'))
+
+    def test_csv_export_requires_login(self):
+        self.client.logout()
+
+        response = self.client.get(reverse('export_movies'))
+
+        self.assertRedirects(
+            response,
+            '{}?next={}'.format(reverse('login'), reverse('export_movies')),
+        )
+
     def test_user_cannot_toggle_another_users_favorite(self):
         other_user = User.objects.create_user(username='visitor', password='StrongPass!1234')
         self.client.force_login(other_user)
@@ -133,6 +176,7 @@ class DeleteMovieTests(TestCase):
         self.assertRedirects(response, reverse('index'))
         self.movie.refresh_from_db()
         self.assertEqual(self.movie.status, Movie.STATUS_WATCHED)
+        self.assertIsNotNone(self.movie.watched_on)
 
         self.client.post(reverse('toggle_movie_status', args=[self.movie.movie_id]))
         self.movie.refresh_from_db()
