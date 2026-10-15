@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Library</title>
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --card: #ffffff;
+            --ink: #172033;
+            --muted: #697386;
+            --primary: #5b5ce2;
+            --primary-dark: #4849c9;
+            --line: #e6e9f0;
+            --shadow: 0 14px 40px rgba(26, 36, 60, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(ellipse at top left, rgba(91, 92, 226, 0.10), transparent 35rem),
+                var(--bg);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: min(1240px, calc(100% - 48px));
+            margin: 0 auto;
+            padding: 44px 0 64px;
+        }
+
+        .topbar {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(120deg, #1b2340 0%, #313b72 55%, #5556d8 100%);
+            color: #fff;
+            padding: 42px 44px;
+            border-radius: 24px;
+            box-shadow: 0 24px 55px rgba(37, 45, 102, 0.2);
+            margin-bottom: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .topbar::after {
+            content: "";
+            position: absolute;
+            width: 360px;
+            height: 360px;
+            right: 16%;
+            top: -260px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 50%;
+            box-shadow: 0 0 0 34px rgba(255, 255, 255, 0.035), 0 0 0 72px rgba(255, 255, 255, 0.025);
+            pointer-events: none;
+        }
+
+        .topbar-copy,
+        .topbar-actions {
+            position: relative;
+            z-index: 1;
+        }
+
+        .topbar-actions {
+            display: grid;
+            justify-items: end;
+            gap: 14px;
+        }
+
+        .account-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.86rem;
+        }
+
+        .logout-button {
+            padding: 7px 11px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 0.82rem;
+        }
+
+        .logout-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .eyebrow {
+            margin: 0 0 10px;
+            color: #c7cbff;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: clamp(2rem, 4vw, 3rem);
+            letter-spacing: -0.045em;
+            line-height: 1.05;
+        }
+
+        .topbar-description {
+            max-width: 480px;
+            margin: 12px 0 0;
+            color: rgba(255, 255, 255, 0.76);
+            line-height: 1.6;
+        }
+
+        .content {
+            display: block;
+        }
+
+        .collection-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 16px;
+            margin: 0 2px 18px;
+        }
+
+        .collection-heading h2 {
+            margin: 0;
+            font-size: 1.45rem;
+            letter-spacing: -0.035em;
+        }
+
+        .collection-heading p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .collection-filters {
+            display: grid;
+            grid-template-columns: minmax(180px, 1.5fr) repeat(3, minmax(130px, 1fr)) auto auto;
+            align-items: end;
+            gap: 12px;
+            padding: 18px;
+            margin: 0 0 22px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 17px;
+            box-shadow: var(--shadow);
+        }
+
+        .filter-field {
+            display: grid;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 0.75rem;
+            font-weight: 750;
+        }
+
+        .filter-field input,
+        .filter-field select {
+            width: 100%;
+            min-width: 0;
+            border: 1px solid #dce1eb;
+            border-radius: 10px;
+            padding: 10px 11px;
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+            font-size: 0.88rem;
+        }
+
+        .favorite-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 42px;
+            white-space: nowrap;
+            color: var(--muted);
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
+
+        .favorite-filter input {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--primary);
+        }
+
+        .filter-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .clear-filters {
+            color: var(--muted);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .favorite-button {
+            min-height: 42px;
+            padding: 10px 14px;
+            background: #a16207;
+            color: #fff;
+            font-size: 0.88rem;
+        }
+
+        .favorite-button:hover {
+            background: #854d0e;
+        }
+
+        .favorite-button.is-favorite {
+            background: #fef3c7;
+            color: #854d0e;
+            border: 1px solid #fcd34d;
+        }
+
+        .favorite-button.is-favorite:hover {
+            background: #fde68a;
+        }
+
+        .insights {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin: 0 0 26px;
+        }
+
+        .insight-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            padding: 18px 20px;
+        }
+
+        .insight-label {
+            display: block;
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .insight-card strong {
+            font-size: clamp(1.6rem, 2vw, 2.2rem);
+            letter-spacing: -0.05em;
+            line-height: 1;
+        }
+
+        .movie-count {
+            flex: 0 0 auto;
+            padding: 8px 12px;
+            border: 1px solid #e3e4fb;
+            border-radius: 999px;
+            background: #f0f0ff;
+            color: #494ac2;
+            font-size: 0.82rem;
+            font-weight: 750;
+        }
+
+        .spotlight {
+            display: grid;
+            grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.6fr);
+            gap: 20px;
+            background: linear-gradient(135deg, rgba(91, 92, 226, 0.08), rgba(255, 255, 255, 0.95));
+            border: 1px solid #dfe2fa;
+            border-radius: 22px;
+            padding: 22px 24px;
+            box-shadow: 0 18px 38px rgba(48, 58, 104, 0.08);
+            margin-bottom: 28px;
+        }
+
+        .spotlight-copy {
+            min-width: 0;
+        }
+
+        .spotlight-copy h3 {
+            margin: 8px 0 10px;
+            font-size: clamp(1.7rem, 2.3vw, 2.5rem);
+            letter-spacing: -0.06em;
+            line-height: 1.1;
+        }
+
+        .spotlight-copy p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .spotlight-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .rating-pill {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #4348b0;
+            padding: 6px 10px;
+            font-size: 0.76rem;
+            font-weight: 800;
+        }
+
+        .spotlight-description {
+            margin-top: 14px !important;
+            line-height: 1.7;
+        }
+
+        .spotlight-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .highlight-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: var(--primary);
+            color: white;
+            padding: 11px 16px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .spotlight-score {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: rgba(27, 35, 64, 0.96);
+            border-radius: 18px;
+            color: white;
+            padding: 18px 12px;
+        }
+
+        .score-label {
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .spotlight-score strong {
+            display: block;
+            font-size: clamp(2rem, 2vw, 2.7rem);
+            letter-spacing: -0.07em;
+            margin: 10px 0 4px;
+        }
+
+        .spotlight-score small {
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        form {
+            display: grid;
+            gap: 14px;
+        }
+
+        .field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .field label {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .field input,
+        .field textarea,
+        .field select {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 1rem;
+            background: #fff;
+        }
+
+        .field textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            background: var(--primary);
+            color: white;
+            padding: 12px 17px;
+            font: inherit;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        button:hover,
+        .action-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        button:focus-visible,
+        a:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible,
+        select:focus-visible {
+            outline: 3px solid rgba(91, 92, 226, 0.35);
+            outline-offset: 3px;
+        }
+
+        .add-movie-button {
+            background: #fff;
+            color: #34368f;
+            white-space: nowrap;
+            box-shadow: 0 8px 22px rgba(12, 17, 49, 0.18);
+        }
+
+        .add-movie-button:hover {
+            background: #f0f0ff;
+        }
+
+        .movie-dialog {
+            width: min(520px, calc(100% - 32px));
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+        }
+
+        .movie-dialog::backdrop {
+            background: rgba(15, 23, 42, 0.55);
+        }
+
+        .dialog-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .dialog-heading h2 {
+            margin: 0;
+        }
+
+        .close-dialog-button {
+            background: #f0f1f5;
+            color: var(--ink);
+            padding: 8px 12px;
+        }
+
+        .close-dialog-button:hover {
+            background: #e1e4eb;
+        }
+
+        .movie-form {
+            display: grid;
+            gap: 14px;
+        }
+
+        .movie-form .field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .movie-form .field label {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .movie-form .field input,
+        .movie-form .field textarea,
+        .movie-form .field select {
+            width: 100%;
+            border: 1px solid #dce1eb;
+            border-radius: 11px;
+            padding: 11px 13px;
+            font: inherit;
+            font-size: 0.94rem;
+            background: #fbfcfe;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .movie-form .field input:focus,
+        .movie-form .field textarea:focus,
+        .movie-form .field select:focus {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(91, 92, 226, 0.10);
+            outline: none;
+        }
+
+        .movie-form .field textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .field-errors {
+            margin: 0;
+            padding-left: 20px;
+            color: #b91c1c;
+            font-size: 0.875rem;
+        }
+
+        .error-summary {
+            margin: 0;
+            color: #b91c1c;
+            font-weight: bold;
+        }
+
+        .movie-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .movie-actions form {
+            margin: 0;
+        }
+
+        .action-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 10px 14px;
+            border-radius: 11px;
+            color: white;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background 0.18s ease, transform 0.18s ease;
+        }
+
+        .edit-button {
+            background: #5556d8;
+        }
+
+        .status-button {
+            background: #18804a;
+        }
+
+        .status-button:hover {
+            background: #12683c;
+        }
+
+        .status-button.unwatch-button {
+            background: #64748b;
+        }
+
+        .status-button.unwatch-button:hover {
+            background: #475569;
+        }
+
+        .movie-actions .delete-button {
+            min-height: 42px;
+            padding: 10px 14px;
+            background: #dc2626;
+            font-size: 0.88rem;
+        }
+
+        .movie-actions .delete-button:hover {
+            background: #b91c1c;
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+            gap: 22px;
+        }
+
+        .movie-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 19px;
+            padding: 23px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-4px);
+            border-color: #d8daf7;
+            box-shadow: 0 20px 46px rgba(26, 36, 60, 0.12);
+        }
+
+        .movie-card h3 {
+            margin: 0 0 5px;
+            font-size: 1.35rem;
+            letter-spacing: -0.035em;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+
+        .meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin: 19px 0 12px;
+        }
+
+        .meta div {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            line-height: 1.45;
+        }
+
+        .meta strong {
+            display: block;
+            margin-bottom: 3px;
+            color: #929aaa;
+            font-size: 0.68rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            align-self: flex-start;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-weight: 750;
+            font-size: 0.72rem;
+            letter-spacing: 0.02em;
+        }
+
+        .badge.watched {
+            background: #e5f7ee;
+            color: #187447;
+        }
+
+        .badge.unwatched {
+            background: #fff3dd;
+            color: #9b6111;
+        }
+
+        .description {
+            margin: 14px 0 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.65;
+            flex: 1;
+        }
+
+        .movie-actions {
+            padding-top: 18px;
+            border-top: 1px solid #eff1f5;
+        }
+
+        .empty-state {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 56px 24px;
+            text-align: center;
+            color: var(--muted);
+            box-shadow: var(--shadow);
+        }
+
+        .empty-state h2 {
+            margin: 0;
+            color: var(--ink);
+        }
+
+        .empty-state p {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                width: min(100% - 32px, 520px);
+                padding-top: 22px;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+                padding: 30px 25px;
+                border-radius: 19px;
+                margin-bottom: 27px;
+            }
+
+            .topbar-actions {
+                justify-items: start;
+            }
+
+            .topbar::after {
+                right: -180px;
+            }
+
+            .collection-heading {
+                align-items: flex-start;
+            }
+
+            .collection-filters {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .filter-field:first-child {
+                grid-column: 1 / -1;
+            }
+
+            .favorite-filter,
+            .filter-actions {
+                grid-column: 1 / -1;
+            }
+
+            .movie-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .movie-dialog {
+                padding: 22px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="topbar">
+            <div class="topbar-copy">
+                <p class="eyebrow">Your personal cinema</p>
+                <h1>Movie Library</h1>
+                <p class="topbar-description">Keep track of the stories you love and the ones still waiting for movie night.</p>
+            </div>
+            <div class="topbar-actions">
+                <div class="account-controls">
+                    <span>Signed in as <strong>{{ request.user.username }}</strong></span>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="logout-button" type="submit">Log out</button>
+                    </form>
+                </div>
+                <button class="add-movie-button" type="button" onclick="document.getElementById('add-movie-dialog').showModal()">
+                    + Add a movie
+                </button>
+            </div>
+        </header>
+
+        <dialog class="movie-dialog" id="add-movie-dialog" aria-labelledby="add-movie-heading">
+            <div class="dialog-heading">
+                <h2 id="add-movie-heading">Add a Movie</h2>
+                <button class="close-dialog-button" type="button" aria-label="Close form" onclick="document.getElementById('add-movie-dialog').close()">
+                    Close
+                </button>
+            </div>
+            <form class="movie-form" method="post" action="{% url 'index' %}">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <p class="error-summary">{{ form.non_field_errors }}</p>
+                {% endif %}
+                {% for field in form %}
+                    <div class="field">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.errors %}
+                            <ul class="field-errors">
+                                {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <button type="submit">Save Movie</button>
+            </form>
+        </dialog>
+
+        {% if edit_form %}
+            <dialog class="movie-dialog" id="edit-movie-dialog" aria-labelledby="edit-movie-heading">
+                <div class="dialog-heading">
+                    <h2 id="edit-movie-heading">Edit Movie</h2>
+                    <button class="close-dialog-button" type="button" aria-label="Close form" onclick="document.getElementById('edit-movie-dialog').close(); window.location.href='{% url 'index' %}'">
+                        Close
+                    </button>
+                </div>
+                <form class="movie-form" method="post" action="{% url 'edit_movie' editing_movie.movie_id %}">
+                    {% csrf_token %}
+                    {% if edit_form.non_field_errors %}
+                        <p class="error-summary">{{ edit_form.non_field_errors }}</p>
+                    {% endif %}
+                    {% for field in edit_form %}
+                        <div class="field">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.errors %}
+                                <ul class="field-errors">
+                                    {% for error in field.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit">Update Movie</button>
+                </form>
+            </dialog>
+        {% endif %}
+
+        <div class="content">
+            <main>
+                <div class="insights">
+                    <div class="insight-card">
+                        <span class="insight-label">Total</span>
+                        <strong>{{ library_summary.total_movies }}</strong>
+                    </div>
+                    <div class="insight-card">
+                        <span class="insight-label">Watched</span>
+                        <strong>{{ library_summary.watched_count }}</strong>
+                    </div>
+                    <div class="insight-card">
+                        <span class="insight-label">Queued</span>
+                        <strong>{{ library_summary.unwatched_count }}</strong>
+                    </div>
+                    <div class="insight-card">
+                        <span class="insight-label">Avg. rating</span>
+                        <strong>{{ library_summary.average_rating|floatformat:1 }}</strong>
+                    </div>
+                </div>
+
+                <section class="spotlight">
+                    {% if featured_movie %}
+                        <div class="spotlight-copy">
+                            <p class="eyebrow">Tonight's pick</p>
+                            <h3>{{ featured_movie.movie_title }}</h3>
+                            <p>{{ featured_movie.genre }} • {{ featured_movie.release_year }} • {{ featured_movie.director }}</p>
+                            <div class="spotlight-meta">
+                                <span class="badge {% if featured_movie.status == 'Watched' %}watched{% else %}unwatched{% endif %}">{{ featured_movie.status }}</span>
+                                <span class="rating-pill">{{ featured_movie.rating|default:'No rating yet' }} / 10</span>
+                            </div>
+                            <p class="spotlight-description">
+                                {% if featured_movie.description %}
+                                    {{ featured_movie.description }}
+                                {% else %}
+                                    This movie is ready for a rewatch or a fresh first-time watch night.
+                                {% endif %}
+                            </p>
+                            <div class="spotlight-actions">
+                                <a class="highlight-button" href="?surprise=1">Surprise me</a>
+                                <a class="action-button edit-button" href="{% url 'edit_movie' featured_movie.movie_id %}">Edit pick</a>
+                            </div>
+                        </div>
+                        <div class="spotlight-score">
+                            <span class="score-label">Library vibe</span>
+                            <strong>{{ library_summary.average_rating|floatformat:1 }}</strong>
+                            <small>Average rating</small>
+                        </div>
+                    {% else %}
+                        <div class="spotlight-copy">
+                            <p class="eyebrow">Tonight's pick</p>
+                            <h3>No movies yet</h3>
+                            <p>Add your first film to unlock the library spotlight.</p>
+                        </div>
+                        <div class="spotlight-score">
+                            <span class="score-label">Library vibe</span>
+                            <strong>0.0</strong>
+                            <small>Average rating</small>
+                        </div>
+                    {% endif %}
+                </section>
+
+                <div class="collection-heading">
+                    <div>
+                        <h2>Your collection</h2>
+                        <p>Search, sort, and filter your movies for your next movie night.</p>
+                    </div>
+                    <span class="movie-count">{{ movies|length }} {% if movies|length == 1 %}title{% else %}titles{% endif %}</span>
+                </div>
+                <form class="collection-filters" method="get" action="{% url 'index' %}">
+                    <label class="filter-field">
+                        Search titles
+                        <input type="search" name="q" value="{{ filters.search }}" placeholder="Find a movie..." maxlength="100">
+                    </label>
+                    <label class="filter-field">
+                        Genre
+                        <select name="genre">
+                            <option value="">All genres</option>
+                            {% for genre in genres %}
+                                <option value="{{ genre }}" {% if filters.genre == genre %}selected{% endif %}>{{ genre }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label class="filter-field">
+                        Watch status
+                        <select name="status">
+                            <option value="">All statuses</option>
+                            <option value="Watched" {% if filters.status == 'Watched' %}selected{% endif %}>Watched</option>
+                            <option value="Unwatched" {% if filters.status == 'Unwatched' %}selected{% endif %}>Unwatched</option>
+                        </select>
+                    </label>
+                    <label class="filter-field">
+                        Sort by
+                        <select name="sort">
+                            <option value="recent" {% if filters.sort == 'recent' %}selected{% endif %}>Recently added</option>
+                            <option value="title" {% if filters.sort == 'title' %}selected{% endif %}>Title A–Z</option>
+                            <option value="year" {% if filters.sort == 'year' %}selected{% endif %}>Release year</option>
+                            <option value="rating" {% if filters.sort == 'rating' %}selected{% endif %}>Highest rated</option>
+                        </select>
+                    </label>
+                    <label class="favorite-filter">
+                        <input type="checkbox" name="favorites" value="1" {% if filters.favorites_only %}checked{% endif %}>
+                        Favorites only
+                    </label>
+                    <div class="filter-actions">
+                        <button type="submit">Apply</button>
+                        <a class="clear-filters" href="{% url 'index' %}">Clear</a>
+                    </div>
+                </form>
+                {% if movies %}
+                    <div class="movie-grid">
+                        {% for movie in movies %}
+                            <article class="movie-card">
+                                <h3>{{ movie.movie_title }}</h3>
+                                <div class="meta">
+                                    <div><strong>Genre:</strong> {{ movie.genre }}</div>
+                                    <div><strong>Director:</strong> {{ movie.director }}</div>
+                                    <div><strong>Year:</strong> {{ movie.release_year }}</div>
+                                    <div><strong>Release:</strong> {{ movie.release_date|default:'Not set' }}</div>
+                                    <div><strong>Rating:</strong> {{ movie.rating }}</div>
+                                    <div><strong>Added:</strong> {{ movie.date_added }}</div>
+                                </div>
+
+                                <span class="badge {% if movie.status == 'Watched' %}watched{% else %}unwatched{% endif %}">
+                                    {{ movie.status }}
+                                </span>
+
+                                <p class="description">
+                                    {% if movie.description %}
+                                        {{ movie.description }}
+                                    {% else %}
+                                        No description available yet.
+                                    {% endif %}
+                                </p>
+
+                                <div class="movie-actions">
+                                    <form method="post" action="{% url 'toggle_movie_favorite' movie.movie_id %}">
+                                        {% csrf_token %}
+                                        {% if movie.is_favorite %}
+                                            <button class="favorite-button is-favorite" type="submit" aria-label="Remove {{ movie.movie_title }} from favorites">★ Favorite</button>
+                                        {% else %}
+                                            <button class="favorite-button" type="submit" aria-label="Add {{ movie.movie_title }} to favorites">☆ Favorite</button>
+                                        {% endif %}
+                                    </form>
+                                    <form method="post" action="{% url 'toggle_movie_status' movie.movie_id %}">
+                                        {% csrf_token %}
+                                        {% if movie.status == 'Watched' %}
+                                            <button class="status-button unwatch-button" type="submit">Move to watchlist</button>
+                                        {% else %}
+                                            <button class="status-button" type="submit">Mark as watched</button>
+                                        {% endif %}
+                                    </form>
+                                    <a class="action-button edit-button" href="{% url 'edit_movie' movie.movie_id %}">Edit Movie</a>
+                                    <form method="post" action="{% url 'delete_movie' movie.movie_id %}" onsubmit="return confirm('Delete {{ movie.movie_title|escapejs }} from your library?');">
+                                        {% csrf_token %}
+                                        <button class="delete-button" type="submit">Delete Movie</button>
+                                    </form>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% elif has_movies %}
+                    <div class="empty-state">
+                        <h2>No matching movies</h2>
+                        <p>Try changing your search or filters.</p>
+                        <p><a class="clear-filters" href="{% url 'index' %}">Clear filters</a></p>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h2>No movies yet</h2>
+                        <p>Use the form to add your first movie to the library.</p>
+                    </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+
+    {% if form.errors %}
+        <script>
+            document.getElementById('add-movie-dialog').showModal();
+        </script>
+    {% endif %}
+    {% if edit_form %}
+        <script>
+            document.getElementById('edit-movie-dialog').showModal();
+        </script>
+    {% endif %}
+</body>
+</html>
